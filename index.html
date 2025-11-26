@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projeto CAI-2025</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Mini Carro Inteligente 🚘☁️</h1>
+    <p>Microcontroladores + Integração em Nuvem</p>
+    <button id="modo-btn">🌙 Modo Escuro</button>
+  </header>
+
+  <main>
+    <section id="descricao">
+      <h2>Sobre o Projeto</h2>
+      <p>
+        O projeto <strong>Mini Carro Inteligente com Microcontroladores e Integração em Nuvem</strong> consiste na criação de um mini veículo equipado com tecnologia embarcada e conectividade IoT, utilizando microcontroladores modernos e integração total com a nuvem.
+      </p>
+      <p>
+        O carro foi desenvolvido com uma <strong>placa ESP32-S3</strong> e um <strong>Arduino</strong>, conectados à <strong>AWS IoT Core</strong> e <strong>AWS ECS</strong>, permitindo comunicação em tempo real e envio de dados à nuvem via protocolo <strong>MQTT</strong>.
+      </p>
+    </section>
+
+    <section id="componentes">
+      <h2>Principais Componentes</h2>
+
+      <div class="componentes-imagens">
+        <div class="componente">
+          <img src="imagens/Joystick.jpg" alt="Joystick Shield">
+          <p>Joystick Shield</p>
+        </div>
+        <div class="componente">
+          <img src="imagens/RodasOm.jpg" alt="Roda Omnidirecional">
+          <p>Roda Omnidirecional</p>
+        </div>
+        <div class="componente">
+          <img src="imagens/Sensor_Linha.jpg" alt="Sensor de Linha">
+          <p>Sensor de Linha</p>
+        </div>
+        <div class="componente">
+          <img src="imagens/Display.jpg" alt="Display LCD TFT">
+          <p>Display LCD TFT</p>
+        </div>
+        <div class="componente">
+          <img src="imagens/Sensor_RFID.jpg" alt="Módulo RFID RC522">
+          <p>Módulo RFID RC522</p>
+        </div>
+      </div>
+
+      <ul>
+        <li><strong>Sensores de proximidade:</strong> detectam obstáculos próximos ao veículo.</li>
+        <li><strong>Sensor de temperatura:</strong> monitora o aquecimento dos motores.</li>
+        <li><strong>Módulo RFID:</strong> realiza identificação e autenticação.</li>
+        <li><strong>Sensor de linha:</strong> permite o modo automático guiado por linha preta.</li>
+        <li><strong>Joystick:</strong> habilita o modo manual com controle direto.</li>
+        <li><strong>LEDs:</strong> funcionam como faróis, lanternas e setas.</li>
+        <li><strong>Display LCD TFT:</strong> exibe uma imagem visual relacionada ao projeto em uma tela colorida de 1,3" com resolução de 240x240 pixels.</li>
+        <li><strong>Rodas omnidirecionais:</strong> proporcionam mobilidade e precisão.</li>
+        <li><strong>Controle PID:</strong> ajusta o desempenho e estabilidade automaticamente.</li>
+      </ul>
+    </section>
+
+    <section id="nuvem">
+      <h2>Integração com a Nuvem</h2>
+      <p>
+        O sistema do carro está totalmente conectado à nuvem por meio do <strong>MQTT</strong>, enviando e recebendo informações em tempo real. 
+        Os dados são exibidos em uma <strong>dashboard Node-RED</strong>, permitindo visualização e monitoramento completo.
+      </p>
+      <div class="nuvem-imagem">
+        <img src="imagens/Dashboard.png" alt="Dashboard IoT na Nuvem" />
+      </div>
+    </section>
+    
+
+    <section id="app">
+      <h2>Aplicativo Móvel</h2>
+      <div class="app-container">
+        <div class="app-text">
+          <p>
+            Foi desenvolvido um app no <strong>MIT App Inventor</strong> para controle remoto e visualização dos dados do veículo diretamente no smartphone, unindo hardware, software e computação em nuvem em uma experiência completa de <strong>IoT</strong>.
+          </p>
+        </div>
+        <div class="app-image">
+          <img src="imagens/MIT.jpg" alt="Aplicativo MIT App Inventor" />
+        </div>
+      </div>
+    </section>
+
+    <section id="final">
+      <h2>Conclusão</h2>
+      <p>
+        Este projeto demonstra, de forma prática, a união entre <strong>automação, Internet das Coisas e controle inteligente</strong>, mostrando o potencial das tecnologias embarcadas e da computação em nuvem em sistemas modernos.
+      </p>
+    </section>
+  </main>
+
+  <section id="linkedin">
+    <h2>Nosso Time no LinkedIn</h2>
+    <p>Acompanhe e conheça mais sobre os integrantes do projeto acessando seus perfis profissionais:</p>
+  
+    <div class="linkedin-cards">
+      <div class="card">
+        <img src="imagens/FTOPI.JPG" class="profile-pic" alt="">
+        <h3>Pietra Rocha</h3>
+        <a href="https://www.linkedin.com/in/pietra-rocha" target="_blank">🔗 Ver Perfil no LinkedIn</a>
+      </div>
+  
+      <div class="card">
+        <img src="imagens/FTOMADU.JPG" class="profile-pic" alt="">
+        <h3>Maria Eduarda Santos</h3>
+        <a href="https://www.linkedin.com/in/maria-eduarda-santos-26084b334" target="_blank">🔗 Ver Perfil no LinkedIn</a>
+      </div>
+  
+      <div class="card">
+        <img src="imagens/FTORI.JPG" class="profile-pic" alt="">
+        <h3>Riquelme Lopes</h3>
+        <a href="https://www.linkedin.com/in/riquelme-lopes-12a79b38a" target="_blank">🔗 Ver Perfil no LinkedIn</a>
+      </div>
+  
+      <div class="card">
+        <img src="imagens/FTOJU.JPG" class="profile-pic" alt="">
+        <h3>Juliana Freitas</h3>
+        <a href="https://www.linkedin.com/in/juliana-freitas-1187a138a" target="_blank">🔗 Ver Perfil no LinkedIn</a>
+      </div>
+  
+      <div class="card">
+        <img src="imagens/FTOGUI.JPG" class="profile-pic" alt="">
+        <h3>Guilherme da Silva Santos</h3>
+        <a href="https://www.linkedin.com/in/guilherme-da-silva-santos-aa6a37326" target="_blank">🔗 Ver Perfil no LinkedIn</a>
+      </div>
+  
+      <div class="card">
+        <img src="imagens/FTOXEXE.JPG" class="profile-pic" alt="">
+        <h3>Maria Eduarda Praxedes</h3>
+        <a href="https://www.linkedin.com/in/maria-eduarda-praxedes-45729a396" target="_blank">🔗 Ver Perfil no LinkedIn</a>
+      </div>
+    </div>
+  </section>
+  
+
+  <footer>
+    © 2025 - Projeto Mini Carro Inteligente | Desenvolvido por Pietra, Maria Santos, Maria Praxedes, Guilherme, Juliana e Riquelme 
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
