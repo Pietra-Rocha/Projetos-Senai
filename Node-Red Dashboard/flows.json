@@ -1,0 +1,1427 @@
+[
+    {
+        "id": "409f3d4f59994052",
+        "type": "tab",
+        "label": "Fluxo 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "e61f5aa87bfe6695",
+        "type": "mqtt in",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "topic": "senai134/comandos",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "cf86a86c2fab8058",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 150,
+        "y": 940,
+        "wires": [
+            [
+                "f97b8962c29e6802",
+                "c8af348170032393",
+                "06b893995d475b43",
+                "88ea20b421907288",
+                "fe9f19317420dea9",
+                "4246e5bb4413081b",
+                "c95c3b021afb9259",
+                "0afd153cf1c9cb23",
+                "d0dd5fce11f5f6f6",
+                "eac80b293223ce01",
+                "a54be6d4f69849dc",
+                "3122c8d8af9932aa"
+            ]
+        ]
+    },
+    {
+        "id": "2e65328a42cc2ef1",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 5",
+        "func": "\nlet dados =\n{ \"botaoD\": msg.payload\n };\n//msg.payload = JSON.stringify(dados);\nmsg.payload = dados;\nmsg.topic = \"senai134/comandos\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2280,
+        "y": 660,
+        "wires": [
+            [
+                "e7e424fe2c600915"
+            ]
+        ]
+    },
+    {
+        "id": "d25668fa96c19c02",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Esquerda ",
+        "label": "𝐄𝐬𝐪𝐮𝐞𝐫𝐝𝐚 ⬅️",
+        "group": "036d7b9ed3d758dd",
+        "order": 2,
+        "width": 0,
+        "height": 1,
+        "passthru": false,
+        "decouple": false,
+        "topic": "payload.direcao.esquerda",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 1640,
+        "y": 660,
+        "wires": [
+            [
+                "c1b5b2b3f947aec8"
+            ]
+        ]
+    },
+    {
+        "id": "0f04becea5bdee64",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Tras",
+        "label": "𝐓𝐫𝐚𝐬 ⬇️",
+        "group": "036d7b9ed3d758dd",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "decouple": false,
+        "topic": "payload.direcao.tras",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 1630,
+        "y": 760,
+        "wires": [
+            [
+                "589b41c2c1f6b3a1"
+            ]
+        ]
+    },
+    {
+        "id": "ca27cf2174178545",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Frente",
+        "label": "Frente ⬆️",
+        "group": "036d7b9ed3d758dd",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "decouple": false,
+        "topic": "payload.direcao.frente",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 1670,
+        "y": 940,
+        "wires": [
+            [
+                "175f12074bbdf889"
+            ]
+        ]
+    },
+    {
+        "id": "4baa9c658f298b65",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Farol",
+        "label": "𝐅𝐚𝐫𝐨𝐥  🚨",
+        "group": "6de99770cbd59509",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": false,
+        "topic": "payload.farol",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "1",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "Green",
+        "offvalue": "0",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "Red",
+        "x": 2090,
+        "y": 960,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d81256c5a139bf2e",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Seta Direita",
+        "label": "𝐒𝐞𝐭𝐚 𝐃𝐢𝐫𝐞𝐢𝐭𝐚 ➡️",
+        "group": "6de99770cbd59509",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": false,
+        "topic": "payload.setas",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "1",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "Green",
+        "offvalue": "0",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "Red",
+        "x": 2090,
+        "y": 1040,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "0bb91b7a1439e526",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Lanterna",
+        "label": "𝐋𝐚𝐧𝐭𝐞𝐫𝐧𝐚 🚨",
+        "group": "6de99770cbd59509",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": false,
+        "topic": "payload.luzes",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "1",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "2",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "",
+        "x": 2080,
+        "y": 860,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4094a2da92fcdd60",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Direita",
+        "label": "Direita ➡️",
+        "group": "036d7b9ed3d758dd",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "decouple": false,
+        "topic": "payload.direcao.direita",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "true",
+        "onvalueType": "bool",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "false",
+        "offvalueType": "bool",
+        "officon": "",
+        "offcolor": "",
+        "x": 1650,
+        "y": 1020,
+        "wires": [
+            [
+                "3e3fb438283a89d1"
+            ]
+        ]
+    },
+    {
+        "id": "c1b5b2b3f947aec8",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 6",
+        "func": "let direcao_esquerda= msg.payload;\n//et seta_esquerda = msg.payload.seta_esquerda;\n\nif (direcao_esquerda == 1) msg.payload = 1;\nelse msg.payload = 0;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1840,
+        "y": 660,
+        "wires": [
+            [
+                "f150fa8cfee70549",
+                "2e65328a42cc2ef1"
+            ]
+        ]
+    },
+    {
+        "id": "589b41c2c1f6b3a1",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 7",
+        "func": "let direcao_tras= msg.payload;\n//et seta_esquerda = msg.payload.seta_esquerda;\n\nif (direcao_tras == 1) msg.payload = 1;\nelse msg.payload = 0;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1820,
+        "y": 760,
+        "wires": [
+            [
+                "0bb91b7a1439e526",
+                "5ee77d21cd5417ad"
+            ]
+        ]
+    },
+    {
+        "id": "175f12074bbdf889",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 8",
+        "func": "let direcao_frente= msg.payload;\n//et seta_esquerda = msg.payload.seta_esquerda;\n\nif (direcao_frente == 1) msg.payload = 1;\nelse msg.payload = 0;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1820,
+        "y": 940,
+        "wires": [
+            [
+                "4baa9c658f298b65",
+                "0d73640fa476b643"
+            ]
+        ]
+    },
+    {
+        "id": "3e3fb438283a89d1",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 9",
+        "func": "let direcao_direita= msg.payload;\n//et seta_esquerda = msg.payload.seta_esquerda;\n\nif (direcao_direita == 1) msg.payload = 1;\nelse msg.payload = 0;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1820,
+        "y": 1020,
+        "wires": [
+            [
+                "d81256c5a139bf2e",
+                "efa9b211a0d0feb8"
+            ]
+        ]
+    },
+    {
+        "id": "e7e424fe2c600915",
+        "type": "mqtt out",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "topic": "senai134/comandos",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cf86a86c2fab8058",
+        "x": 2760,
+        "y": 800,
+        "wires": []
+    },
+    {
+        "id": "f150fa8cfee70549",
+        "type": "ui-switch",
+        "z": "409f3d4f59994052",
+        "name": "Seta Esquerda",
+        "label": "𝐒𝐞𝐭𝐚 𝐄𝐬𝐪𝐮𝐞𝐫𝐝𝐚 ⬅️",
+        "group": "6de99770cbd59509",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "decouple": false,
+        "topic": "payload.setas",
+        "topicType": "msg",
+        "style": "",
+        "className": "",
+        "layout": "row-spread",
+        "clickableArea": "switch",
+        "onvalue": "1",
+        "onvalueType": "num",
+        "onicon": "",
+        "oncolor": "",
+        "offvalue": "0",
+        "offvalueType": "num",
+        "officon": "",
+        "offcolor": "",
+        "x": 2040,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5ee77d21cd5417ad",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 10",
+        "func": "\nlet dados =\n{ \"botaoC\": msg.payload  \n};\n//msg.payload = JSON.stringify(dados);\nmsg.payload = dados;\n//msg.topic = \"esp32/sensores\";\nreturn msg;\n\n\n\n\n\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2410,
+        "y": 800,
+        "wires": [
+            [
+                "e7e424fe2c600915"
+            ]
+        ]
+    },
+    {
+        "id": "0d73640fa476b643",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 11",
+        "func": "\nlet dados =\n{ \"botaoA\": msg.payload\n};\n//msg.payload = JSON.stringify(dados);\nmsg.payload = dados;\n//msg.topic = \"esp32/sensores\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2410,
+        "y": 880,
+        "wires": [
+            [
+                "e7e424fe2c600915"
+            ]
+        ]
+    },
+    {
+        "id": "efa9b211a0d0feb8",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 12",
+        "func": "\nlet dados =\n{ \"botaoB\": msg.payload\n};\n//msg.payload = JSON.stringify(dados);\nmsg.payload = dados;\n//msg.topic = \"esp32/sensores\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2410,
+        "y": 960,
+        "wires": [
+            [
+                "e7e424fe2c600915"
+            ]
+        ]
+    },
+    {
+        "id": "f97b8962c29e6802",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload.direcao",
+        "action": "",
+        "pretty": true,
+        "x": 510,
+        "y": 760,
+        "wires": [
+            [
+                "60c987e052a49b89"
+            ]
+        ]
+    },
+    {
+        "id": "60c987e052a49b89",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 19",
+        "func": "let temp = msg.payload.botaoD;   // ou o nome correto do campo\nif(temp == 1) msg.payload = true;\nelse msg.payload = false;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 760,
+        "wires": [
+            [
+                "d25668fa96c19c02",
+                "f150fa8cfee70549"
+            ]
+        ]
+    },
+    {
+        "id": "c8af348170032393",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload.direcao",
+        "action": "",
+        "pretty": true,
+        "x": 510,
+        "y": 800,
+        "wires": [
+            [
+                "3435660498c48a24"
+            ]
+        ]
+    },
+    {
+        "id": "06b893995d475b43",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload.direcao",
+        "action": "str",
+        "pretty": true,
+        "x": 510,
+        "y": 840,
+        "wires": [
+            [
+                "76edf34bccb6265e"
+            ]
+        ]
+    },
+    {
+        "id": "88ea20b421907288",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload.direcao",
+        "action": "str",
+        "pretty": true,
+        "x": 510,
+        "y": 880,
+        "wires": [
+            [
+                "75e5d96859b34f07"
+            ]
+        ]
+    },
+    {
+        "id": "3435660498c48a24",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 20",
+        "func": "let temp = msg.payload.botaoC;   // ou o nome correto do campo\nif (temp == 1) msg.payload = true;\nelse msg.payload = false;\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 800,
+        "wires": [
+            [
+                "0f04becea5bdee64",
+                "0bb91b7a1439e526"
+            ]
+        ]
+    },
+    {
+        "id": "76edf34bccb6265e",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 21",
+        "func": "let temp = msg.payload.botaoA;   // ou o nome correto do campo\nif(temp == 1) msg.payload = true;\nelse msg.payload = false;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 840,
+        "wires": [
+            [
+                "ca27cf2174178545",
+                "4baa9c658f298b65"
+            ]
+        ]
+    },
+    {
+        "id": "75e5d96859b34f07",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 22",
+        "func": "let temp = msg.payload.botaoB;   // ou o nome correto do campo\nif(temp == 1) msg.payload = true;\nelse msg.payload = false;\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 770,
+        "y": 880,
+        "wires": [
+            [
+                "4094a2da92fcdd60",
+                "d81256c5a139bf2e"
+            ]
+        ]
+    },
+    {
+        "id": "fe9f19317420dea9",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 960,
+        "wires": [
+            [
+                "fe2a3cbbee2ae265"
+            ]
+        ]
+    },
+    {
+        "id": "fe2a3cbbee2ae265",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 1",
+        "func": "let motores = {\n    \"M0\": msg.payload.temperaturas.M0.toFixed(1),\n    \"M1\": msg.payload.temperaturas.M1.toFixed(1),\n    \"M2\": msg.payload.temperaturas.M2.toFixed(1),\n    \"M3\": msg.payload.temperaturas.M3.toFixed(1)\n}\n\nmsg.payload = motores;\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 1020,
+        "wires": [
+            [
+                "6068cb54690f6276",
+                "69f571e88e79f66d",
+                "5e787ca6f91e72fa",
+                "6a9acf7a669497ed"
+            ]
+        ]
+    },
+    {
+        "id": "6068cb54690f6276",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Motor  01",
+        "group": "d9209b0c28c58475",
+        "order": 1,
+        "value": "payload.M0",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Motor 01",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "℃",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 980,
+        "y": 960,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4246e5bb4413081b",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1000,
+        "wires": [
+            [
+                "fe2a3cbbee2ae265"
+            ]
+        ]
+    },
+    {
+        "id": "c95c3b021afb9259",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1040,
+        "wires": [
+            [
+                "fe2a3cbbee2ae265"
+            ]
+        ]
+    },
+    {
+        "id": "0afd153cf1c9cb23",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1080,
+        "wires": [
+            [
+                "fe2a3cbbee2ae265"
+            ]
+        ]
+    },
+    {
+        "id": "69f571e88e79f66d",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Motor 02",
+        "group": "d9209b0c28c58475",
+        "order": 4,
+        "value": "payload.M1",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Motor 02",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "℃",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 980,
+        "y": 1000,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5e787ca6f91e72fa",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Motor 03",
+        "group": "d9209b0c28c58475",
+        "order": 3,
+        "value": "payload.M2",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Motor 03",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "℃",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 980,
+        "y": 1040,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6a9acf7a669497ed",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Motor 04",
+        "group": "d9209b0c28c58475",
+        "order": 2,
+        "value": "payload.M3",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-half",
+        "gstyle": "needle",
+        "title": "Motor 04",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "℃",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 980,
+        "y": 1080,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d0dd5fce11f5f6f6",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1200,
+        "wires": [
+            [
+                "532504aac78efcd5"
+            ]
+        ]
+    },
+    {
+        "id": "eac80b293223ce01",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1240,
+        "wires": [
+            [
+                "532504aac78efcd5"
+            ]
+        ]
+    },
+    {
+        "id": "a54be6d4f69849dc",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1280,
+        "wires": [
+            [
+                "532504aac78efcd5"
+            ]
+        ]
+    },
+    {
+        "id": "3122c8d8af9932aa",
+        "type": "json",
+        "z": "409f3d4f59994052",
+        "name": "",
+        "property": "payload",
+        "action": "obj",
+        "pretty": false,
+        "x": 510,
+        "y": 1320,
+        "wires": [
+            [
+                "532504aac78efcd5"
+            ]
+        ]
+    },
+    {
+        "id": "532504aac78efcd5",
+        "type": "function",
+        "z": "409f3d4f59994052",
+        "name": "function 2",
+        "func": "let motores = {\n    \"M0\": msg.payload.motores.M0.velocidadde,\n    \"M1\": msg.payload.motores.M1.velocidadde,\n    \"M2\": msg.payload.motores.M2.velocidadde,\n    \"M3\": msg.payload.motores.M3.velocidadde\n}\n\nmsg.payload = motores;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 1260,
+        "wires": [
+            [
+                "5fef25ea77e8199a",
+                "5a3151a6d343d068",
+                "f069d71e547017f5",
+                "77a70a2b427d3223"
+            ]
+        ]
+    },
+    {
+        "id": "5fef25ea77e8199a",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Velocidade M1",
+        "group": "bf0d51eb53911fa5",
+        "order": 4,
+        "value": "payload.M0",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "Motor 01",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "Km",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1100,
+        "y": 1200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5a3151a6d343d068",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Velocidade M2",
+        "group": "bf0d51eb53911fa5",
+        "order": 3,
+        "value": "payload.M1",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "Motor 02",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "Km",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1100,
+        "y": 1240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f069d71e547017f5",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Velocidade M3",
+        "group": "bf0d51eb53911fa5",
+        "order": 2,
+        "value": "payload.M2",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "Motor 03",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "Km",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1100,
+        "y": 1280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "77a70a2b427d3223",
+        "type": "ui-gauge",
+        "z": "409f3d4f59994052",
+        "name": "Velocidade M4",
+        "group": "bf0d51eb53911fa5",
+        "order": 1,
+        "value": "payload.M3",
+        "valueType": "msg",
+        "width": 3,
+        "height": 3,
+        "gtype": "gauge-34",
+        "gstyle": "needle",
+        "title": "Motorv 04",
+        "alwaysShowTitle": false,
+        "floatingTitlePosition": "top-left",
+        "units": "Km",
+        "icon": "",
+        "prefix": "",
+        "suffix": "",
+        "segments": [
+            {
+                "from": "0",
+                "color": "#5cd65c",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "4",
+                "color": "#ffc800",
+                "text": "",
+                "textType": "label"
+            },
+            {
+                "from": "7",
+                "color": "#ea5353",
+                "text": "",
+                "textType": "label"
+            }
+        ],
+        "min": 0,
+        "max": 10,
+        "sizeThickness": 16,
+        "sizeGap": 4,
+        "sizeKeyThickness": 8,
+        "styleRounded": true,
+        "styleGlow": false,
+        "className": "",
+        "x": 1100,
+        "y": 1320,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cf86a86c2fab8058",
+        "type": "mqtt-broker",
+        "name": "AWS.",
+        "broker": "a2eiznyh7uyhh6-ats.iot.us-east-1.amazonaws.com",
+        "port": "8883",
+        "tls": "f62aae20d5fd15d9",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "036d7b9ed3d758dd",
+        "type": "ui-group",
+        "name": "𝐃𝐢𝐫𝐞𝐜̧𝐨̃𝐞𝐬 🛣️",
+        "page": "a9a46b3010b7c9f6",
+        "width": 12,
+        "height": "1",
+        "order": 4,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "6de99770cbd59509",
+        "type": "ui-group",
+        "name": "𝐋𝐮𝐳𝐞𝐬 💡",
+        "page": "a9a46b3010b7c9f6",
+        "width": 12,
+        "height": "1",
+        "order": 5,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "d9209b0c28c58475",
+        "type": "ui-group",
+        "name": "Temperaturas ",
+        "page": "a9a46b3010b7c9f6",
+        "width": 6,
+        "height": 1,
+        "order": 3,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "bf0d51eb53911fa5",
+        "type": "ui-group",
+        "name": "Velocidades",
+        "page": "a9a46b3010b7c9f6",
+        "width": 6,
+        "height": 1,
+        "order": 1,
+        "showTitle": true,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "f62aae20d5fd15d9",
+        "type": "tls-config",
+        "name": "",
+        "cert": "",
+        "key": "",
+        "ca": "",
+        "certname": "certificate.pem.crt",
+        "keyname": "private.pem.key",
+        "caname": "AmazonRootCA1 (1).pem",
+        "servername": "",
+        "verifyservercert": true,
+        "alpnprotocol": ""
+    },
+    {
+        "id": "a9a46b3010b7c9f6",
+        "type": "ui-page",
+        "name": "Page Name",
+        "ui": "79f8268447036ec1",
+        "path": "/page1",
+        "icon": "home",
+        "layout": "grid",
+        "theme": "a58e9f5d6f484663",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "79f8268447036ec1",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true,
+        "allowInstall": false
+    },
+    {
+        "id": "a58e9f5d6f484663",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#130c07",
+            "primary": "#1a1f1f",
+            "bgPage": "#ffffff",
+            "groupBg": "#4f1717",
+            "groupOutline": "#030303"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "4b762c780ebcabd5",
+        "type": "global-config",
+        "env": [],
+        "modules": {
+            "@flowfuse/node-red-dashboard": "1.29.0"
+        }
+    }
+]

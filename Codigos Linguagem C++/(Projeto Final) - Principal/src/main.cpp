@@ -15,6 +15,7 @@
 #include <TFT_eSPI.h>
 #include "leds.h"
 #include <time.h>
+#include <Adafruit_NeoPixel.h>
 
 // ======================== CONFIGURAÇÕES DE MQTT ==========================
 const int mqtt_port = 8883;
@@ -24,6 +25,13 @@ const char *mqtt_topic_pub = "senai134/comandos"; // ENVIA telemetria/status
 
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
+
+// ======================== Conf. (Led RGB) ==========================
+
+#define PINO_LEDS_RGB 45
+#define QTD_LEDS 40
+
+Adafruit_NeoPixel fitaRGB(QTD_LEDS, PINO_LEDS_RGB, NEO_GRB + NEO_KHZ800);
 
 // ======================== PINOS (motores e MCP mantidos) ==========================
 #define pinM0dir 14
@@ -42,34 +50,48 @@ static int PINO_BOTAO_ENCODER = 19;
 
 // =========================== VARIÁVEIS GLOBAIS ==========================
 int contA = 0, contB = 0, contC = 0, contD = 0, contE = 0, contF = 0, contK = 0;
-int ultimoExecA = 0, ultimoExecB = 0, ultimoExecC = 0, ultimoExecD = 0;
+int ultimoExecA = 0, ultimoExecB = 0, ultimoExecC = 0, ultimoExecD = 0, ultimoExecE = 0, ultimoExecF = 0, ultimoExecK = 0;
 int ultimoX = 0, ultimoY = 0; // mantidos para telemetria (se quiser)
+
+bool botaoAPressionado = 0, botaoASolto = 0,
+     botaoBPressionado = 0, botaoBSolto = 0,
+     botaoCPressionado = 0, botaoCSolto = 0,
+     botaoDPressionado = 0, botaoDSolto = 0,
+     botaoEPressionado = 0, botaoESolto = 0,
+     botaoFPressionado = 0, botaoFSolto = 0,
+     botaoKPressionado = 0, botaoKSolto = 0;
+
+int selecionarCaixa = 0;
+uint8_t sucess = false;
+
 Adafruit_MCP23X17 mcp;
-Adafruit_ADS1115 ads; // conversor a/d 4 ch com 4x lm35 (utilizamos como sensor de temperatura dos motores)
-Adafruit_VL53L0X lox; // sensor de proximidade
+Adafruit_ADS1115 ads;
+Adafruit_VL53L0X lox;
 Carrinho carrinho(mcp);
-Adafruit_PN532 nfc(-1, -1);
 TFT_eSPI tft;
 Leds leds(mcp);
+Adafruit_PN532 nfc(-1, -1);
+
+// ----------------- RGB ----------------
+
+unsigned long ultimoMovimento = 0;
+int intervaloChase = 5; // velocidade da animação (ms)
+int posicaoChase = 0;
 
 // Controle de pisca individual
 bool estadoPiscaDir = false;
 bool estadoPiscaEsq = false;
 
-static unsigned long ultimaLeitura = 0;
-const unsigned long intervalo = 1000; // 1s sem bloquear código
-
 unsigned long ultimoPiscaDir = 0;
 unsigned long ultimoPiscaEsq = 0;
+
+static unsigned long ultimaLeitura = 0;
+const unsigned long intervalo = 1000; // 1s sem bloquear código
 
 const unsigned long intervaloPisca = 300; // piscar padrão de carro
 
 bool estadoPiscaAlerta = false;
 unsigned long ultimoPiscaAlerta = 0;
-
-// 0 = MIT App (MQTT)
-// 1 = Joystick físico
-int modoControle = 0;
 
 // Variáveis de controle vindas do MQTT
 bool farolDianteiro = false, farolTraseiro = false, piscaDireita = false, piscaEsquerda = false;
@@ -107,6 +129,21 @@ const unsigned long intervaloLeituraDist = 1000;
 const long gmtOffset_sec = -3 * 3600;
 const int daylightOffset_sec = 0;
 
+// RFID
+uint8_t uid[] = {
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0};
+
+int modoLeituraRFID = 0;
+bool flagModoLeitura = false;
+bool modoChase = false;
+
 // ======================== PROTÓTIPOS ==========================
 void sincronizarTempo();
 void conectarWiFi();
@@ -126,32 +163,57 @@ void girarProprioEixo();
 void stop();
 void parar();
 void pararCarrinho();
-void enviarCargaLeve();
-void enviarCargaPesada();
-void enviarCargaMedia();
 void imagem();
 void limparTela();
 void enviarJSONMotores(int dir[4], int vel);
 void enviarPacoteCompleto();
 void temperaturaMotores();
 void Leituraproximidade();
+void acenderRGBvermelho();
+void acenderRGBbranco();
+void acenderRGBamarelo();
+void apagarRGB();
+void efeitoChase();
+bool lerCaixas();
+bool compararCartao(const uint8_t (&a)[8], const uint8_t (&b)[8]);
+void atualizabotoes();
+void atualizaRGB();
+void atualizaLeituraCaixas();
 
 // ======================== SETUP ==========================
 void setup()
 {
   // MÍNIMO necessário: Serial, I2C para MCP (faróis/piscas), carrinho e PWM dos motores,
   // WiFi/MQTT (certificados e callback) e tentativa de conexão ao broker.
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // leds.begin();
   tft.init();
   tft.setRotation(1); // ajustado
 
   limparTela();
+
   // I2C (necessário para MCP23X17 que usamos para faróis/piscas)
   Wire.begin();
   ads.begin();
   lox.begin();
+
+  // leitr de caixas
+  nfc.begin();
+
+  // Inicializa MCP23X17 (necessário para controlar faróis/piscas via MQTT)
+  if (!mcp.begin_I2C())
+  {
+    Serial.println(" Erro ao inicializar MCP23X17!");
+    while (1)
+      ;
+  }
+  // configura pinos 10..15 como saída (usados para LEDs/faróis/piscas)
+  for (int p = 10; p <= 15; p++)
+  {
+    mcp.pinMode(p, OUTPUT);
+    mcp.digitalWrite(p, LOW);
+  }
 
   // Inicializa o carrinho (biblioteca) - mantém para garantir motors control funcionando
   carrinho.begin();
@@ -176,21 +238,6 @@ void setup()
   client.setServer(AWS_BROKER, mqtt_port);
   client.setCallback(callback);
 
-  nfc.begin();
-  uint32_t versiondata = nfc.getFirmwareVersion();
-  if (!versiondata)
-  {
-    Serial.println("Erro ao detectar PN532");
-  }
-  nfc.SAMConfig();
-
-  // Inicializa MCP23X17 (necessário para controlar faróis/piscas via MQTT)
-  if (!mcp.begin_I2C())
-  {
-    Serial.println(" Erro ao inicializar MCP23X17!");
-    while (1)
-      ;
-  }
   // configura pinos 10..15 como saída (usados para LEDs/faróis/piscas)
   for (int p = 10; p <= 15; p++)
   {
@@ -198,128 +245,124 @@ void setup()
     mcp.digitalWrite(p, LOW);
   }
 
+  fitaRGB.begin(); // configuracao dos leds rgb
+  fitaRGB.show();
+
   // Conectar WiFi e MQTT (mantive as chamadas; conectarWiFi usa SSID/SENHA definidos em senhas.h)
   conectarWiFi();
   sincronizarTempo();
   reconnectMQTT();
+  client.setBufferSize(2048);
 }
 
 // ======================== LOOP ==========================
 void loop()
 {
   leds.atualizar();
+  atualizabotoes();
+  atualizaRGB();
+  atualizaLeituraCaixas();
 
   // Mantém conexão MQTT
   if (!client.connected())
     reconnectMQTT();
   client.loop();
 
-  // Serial.println("teste 1");
-  // Serial.printf(" modo controle %d \n contaA %d - %d \n contaB %d - %d \n contC %d - %d \n contD %d - %d", modoControle, contA, ultimoExecA, contB, ultimoExecB, contC, ultimoExecC,contD, ultimoExecD);
-
-  // Executa movimento quando houver mudança nos contadores remotos A/B/C/D
-  if (contA != ultimoExecA || contB != ultimoExecB || contC != ultimoExecC || contD != ultimoExecD)
+  if (botaoAPressionado)
   {
-    if (contA == 1)
-    {
-      frente();
-    }
-    else if (contB == 1)
-    {
-      lateralDireita(); // substitui seu "direita()" antigo -- pino 10
-    }
-    else if (contC == 1)
-    {
-      tras();
-    }
-    else if (contD == 1)
-    {
-      lateralEsquerda(); // substitui seu "esquerda()" antigo -- pino 13
-    }
-    else if (contK == 1)
-    {
-      // fazer leds piscarem c o katchau
-      leds.piscarFaroisJuntos();
-      leds.piscarLanternasJuntas();
-      leds.piscarSetaDireita();
-      leds.piscarSetaEsquerda();
-    }
-    else
-    {
-      parar();
-    }
-
-    ultimoExecA = contA;
-    ultimoExecB = contB;
-    ultimoExecC = contC;
-    ultimoExecD = contD;
- 
-    // =====================================================
-    //  LEITURA PERIODICA DE TEMPERATURA DOS MOTORES
-    // =====================================================
-    if (millis() - ultimaLeituraTemp >= intervaloLeituraTemp)
-    {
-      ultimaLeituraTemp = millis();
-      temperaturaMotores();
-    }
-
-    // =====================================================
-    //  LEITURA PERIODICA DE PROXIMIDADE + SEGURANÇA
-    // =====================================================
-    if (millis() - ultimaLeituraDist >= intervaloLeituraDist)
-    {
-      ultimaLeituraDist = millis();
-      Leituraproximidade();
-    }
+    frente();
+    leds.ligarFarois();
+    acenderRGBbranco();
   }
 
-  // ======================= LEITURA AUTOMÁTICA DO NFC =======================
-  boolean success;
-  uint8_t uid[7];
-  uint8_t uidLength;
-
-  // Tenta ler o cartão
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  if (success)
+  else if (botaoASolto)
   {
-    unsigned long agora = millis();
-
-    // evita spam e leituras repetidas sem usar delay()
-    if (agora - ultimaLeitura >= intervalo)
-    {
-      ultimaLeitura = agora;
-
-      String chipID = "";
-      for (uint8_t i = 0; i < uidLength; i++)
-        chipID += String(uid[i], HEX);
-
-      chipID.toLowerCase();
-
-      Serial.print("📡 CHIP NFC DETECTADO: ");
-      Serial.println(chipID);
-
-      if (chipID == "c38a14c") // CARGA LEVE
-      {
-        enviarCargaLeve();
-      }
-      else if (chipID == "2380d912") // CARGA MEDIA
-      {
-        enviarCargaMedia();
-      }
-      else if (chipID == "c3eda5ee") // CARGA PESADA
-      {
-        enviarCargaPesada();
-      }
-      else
-      {
-        Serial.println("⚠ CHIP LIDO NÃO É DE NENHUMA CARGA REGISTRADA!");
-      }
-    }
+    parar();
+    leds.desligarFarois();
+    apagarRGB();
   }
+
+  if (botaoBPressionado)
+  {
+    lateralDireita();
+    leds.piscarSetaDireita();
+    acenderRGBamarelo();
+  }
+  else if (botaoBSolto)
+  {
+    parar();
+    leds.desligarSetaDireita();
+    apagarRGB();
+  }
+
+  if (botaoDPressionado)
+  {
+    lateralEsquerda();
+    leds.piscarSetaEsquerda();
+    acenderRGBamarelo();
+  }
+  else if (botaoDSolto)
+  {
+    parar();
+    leds.desligarSetaEsquerda();
+    apagarRGB();
+  }
+
+  if (botaoCPressionado)
+  {
+    tras();
+    leds.ligarLanternas();
+    acenderRGBvermelho();
+  }
+  else if (botaoCSolto)
+  {
+    parar();
+    leds.desligarLanternas();
+    apagarRGB();
+  }
+
+  if (botaoKPressionado)
+  {
+    //
+    leds.piscarFaroisJuntos();
+    leds.piscarLanternasJuntas();
+    leds.piscarSetaDireita();
+    leds.piscarSetaEsquerda();
+    modoChase = true;
+    imagem();
+  }
+  else if (botaoKSolto)
+  {
+    leds.desligarTodos();
+    limparTela();
+    modoChase = false;
+  }
+
+
+
+
+  if (botaoFPressionado)
+  {
+   if (!flagModoLeitura)
+      modoLeituraRFID++;
+
+      if(modoLeituraRFID>1) modoLeituraRFID = 0;
+
+    flagModoLeitura = true;
+  }
+
+
+  else if (botaoFSolto)
+  {
+    flagModoLeitura = false;
+  }
+
+
+
 }
 
 // ======================== FUNÇÕES ==========================
+
 // === Wi-Fi ===
 void conectarWiFi()
 {
@@ -335,7 +378,6 @@ void conectarWiFi()
   Serial.print("IP: ");
   Serial.println(WiFi.localIP());
 }
-
 void sincronizarTempo()
 {
   Serial.println("⏳ Sincronizando horário NTP...");
@@ -361,7 +403,6 @@ void sincronizarTempo()
                 timeinfo.tm_mday, timeinfo.tm_mon + 1, timeinfo.tm_year + 1900,
                 timeinfo.tm_hour, timeinfo.tm_min, timeinfo.tm_sec);
 }
-
 void reconnectMQTT()
 {
   while (!client.connected())
@@ -453,7 +494,6 @@ void callback(char *topic, byte *payload, unsigned int length)
     return;
   }
 
-
   // ===========================================================
   // ⚡ COMANDOS DO APP INVENTOR (direcao / select / start)
   // ===========================================================
@@ -481,51 +521,52 @@ void callback(char *topic, byte *payload, unsigned int length)
   }
 
   // 3) Movimentação
-  // Só aceita comando do APP se modoControle == 0
-    if (doc.containsKey("direcao"))
+  if (doc.containsKey("direcao"))
+  {
+
+    int d = doc["direcao"];
+    Serial.print(">> DIRECAO = ");
+    Serial.println(d);
+
+    switch (d)
     {
+    case 1:
+      frente();
+      break;
+    case 2:
+      tras();
+      break;
+    case 3:
+      lateralDireita();
+      break; // direita
+    case 4:
+      lateralEsquerda();
+      break; // esquerda
 
-      int d = doc["direcao"];
-      Serial.print(">> DIRECAO = ");
-      Serial.println(d);
+    case 5:
+      diagonalFrenteEsquerda();
+      break;
+    case 6:
+      diagonalTrasEsquerda();
+      break;
+    case 7:
+      diagonalFrenteDireita();
+      break;
+    case 8:
+      diagonalTrasDireita();
+      break;
+    case 9:
+      girarProprioEixo();
+      break;
+    case 10:
+      stop();
+      break;
 
-      switch (d)
-      {
-      case 1:
-        frente();
-        break;
-      case 2:
-        tras();
-        break;
-      case 3:
-        lateralDireita();
-        break;
-      case 4:
-        lateralEsquerda();
-        break;
-      case 5:
-        diagonalFrenteEsquerda();
-        break;
-      case 6:
-        diagonalTrasEsquerda();
-        break;
-      case 7:
-        diagonalFrenteDireita();
-        break;
-      case 8:
-        diagonalTrasDireita();
-        break;
-      case 9:
-        girarProprioEixo();
-        break;
-      case 10:
-        stop();
-        break;
-      default:
-        parar();
-        break;
-      }
+    default:
+      parar();
+      break;
     }
+  }
 
   // ---------------------------
   //  COMANDOS DE BOTÕES REMOTOS (movement control)
@@ -545,46 +586,11 @@ void callback(char *topic, byte *payload, unsigned int length)
     contF = doc["botaoF"] | 0;
   if (doc.containsKey("botaoK"))
     contK = doc["botaoK"] | 0;
-
-  // logs opcionais para A/B/C/D
-  if (doc.containsKey("botaoA"))
-    if (contA)
-      Serial.println("Botão A REMOTO -> Frente");
-  if (doc.containsKey("botaoB"))
-    if (contB)
-      Serial.println("Botão B REMOTO -> Direita");
-  if (doc.containsKey("botaoC"))
-    if (contC)
-      Serial.println("Botão C REMOTO -> Ré");
-  if (doc.containsKey("botaoD"))
-    if (contD)
-      Serial.println("Botão D REMOTO -> Esquerda");
-
-  if (contK == 1)
-  {
-    // fazer leds piscarem c o katchau
-    leds.piscarFaroisJuntos();
-    leds.piscarLanternasJuntas();
-    leds.piscarSetaDireita();
-    leds.piscarSetaEsquerda();
-    imagem();
-  }
-  else
-  {
-    leds.desligarFarois();
-    leds.desligarLanternas();
-    leds.desligarSetaDireita();
-    leds.desligarSetaEsquerda();
-    limparTela();
-  }
 }
 
 // ======= Publicação =======
 void publicarTelemetria(float temp, int dist)
 {
-  if (!client.connected())
-    reconnectMQTT();
-
   StaticJsonDocument<256> doc;
   if (temp >= 0)
     doc["temperatura"] = temp;
@@ -595,11 +601,10 @@ void publicarTelemetria(float temp, int dist)
   char buffer[256];
   size_t n = serializeJson(doc, buffer);
   bool ok = client.publish(mqtt_topic_pub, buffer, n);
-
   Serial.print(" Telemetria publicada: ");
   Serial.println(buffer);
   if (!ok)
-    Serial.println(" ERRO: Falha ao publicar telemetria!");
+    Serial.println(" Falha ao publicar telemetria.");
 }
 
 // ======= PWM / movimento =======
@@ -749,8 +754,8 @@ void girarProprioEixo()
 {
   int dir[4] = {
       1,  // Motor 0 para frente
-      1,  // Motor 1 para frente
-      -1, // Motor 2 para trás
+      -1, // Motor 1 para trás
+      1,  // Motor 2 para frente
       -1  // Motor 3 para trás
   };
 
@@ -791,143 +796,16 @@ void parar()
   Serial.println(" Carrinho parado.");
 }
 
-// ======= Enviar cargas via MQTT (NFC) =======
-void enviarCargaLeve()
-{
-  // -----------------------------
-  // LEITURA DO CHIP PELO PN532
-  // -----------------------------
-  boolean success;
-  uint8_t uid[7];
-  uint8_t uidLength;
-
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  String chipID = "";
-
-  if (success)
-  {
-    for (uint8_t i = 0; i < uidLength; i++)
-      chipID += String(uid[i], HEX);
-
-    Serial.print("📡 Chip detectado (LEVE): ");
-    Serial.println(chipID);
-  }
-  else
-  {
-    Serial.println("⚠ Nenhum chip detectado na carga LEVE!");
-    chipID = "none";
-  }
-
-  // -----------------------------
-  // ENVIO JSON
-  // -----------------------------
-  StaticJsonDocument<256> doc;
-  doc["tipo"] = "carga";
-  doc["setor"] = "vermelho";
-  doc["chip"] = chipID;
-  doc["source"] = "carrinho";
-
-  char buffer[256];
-  size_t n = serializeJson(doc, buffer);
-  client.publish(mqtt_topic_pub, buffer, n);
-
-  Serial.print("📦 JSON Carga LEVE enviado: ");
-  Serial.println(buffer);
-
-  delay(800);
-}
-
-void enviarCargaPesada()
-{
-  boolean success;
-  uint8_t uid[7];
-  uint8_t uidLength;
-
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  String chipID = "";
-
-  if (success)
-  {
-    for (uint8_t i = 0; i < uidLength; i++)
-      chipID += String(uid[i], HEX);
-
-    Serial.print("📡 Chip detectado (PESADA): ");
-    Serial.println(chipID);
-  }
-  else
-  {
-    Serial.println("⚠ Nenhum chip detectado na carga PESADA!");
-    chipID = "none";
-  }
-
-  StaticJsonDocument<256> doc;
-  doc["tipo"] = "carga";
-  doc["setor"] = "verde";
-  doc["chip"] = chipID;
-  doc["source"] = "carrinho";
-
-  char buffer[256];
-  size_t n = serializeJson(doc, buffer);
-  client.publish(mqtt_topic_pub, buffer, n);
-
-  Serial.print("📦 JSON Carga PESADA enviado: ");
-  Serial.println(buffer);
-
-  delay(800);
-}
-
-void enviarCargaMedia()
-{
-  boolean success;
-  uint8_t uid[7];
-  uint8_t uidLength;
-
-  success = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
-
-  String chipID = "";
-
-  if (success)
-  {
-    for (uint8_t i = 0; i < uidLength; i++)
-      chipID += String(uid[i], HEX);
-
-    Serial.print("📡 Chip detectado (MEDIA): ");
-    Serial.println(chipID);
-  }
-  else
-  {
-    Serial.println("⚠ Nenhum chip detectado na carga MEDIA!");
-    chipID = "none";
-  }
-
-  StaticJsonDocument<256> doc;
-  doc["tipo"] = "carga";
-  doc["nivel"] = "amarelo";
-  doc["chip"] = chipID;
-  doc["source"] = "carrinho";
-
-  char buffer[256];
-  size_t n = serializeJson(doc, buffer);
-  client.publish(mqtt_topic_pub, buffer, n);
-
-  Serial.print("📦 JSON Carga MEDIA enviado: ");
-  Serial.println(buffer);
-
-  delay(800);
-}
-
 void imagem()
 {
   tft.fillScreen(TFT_BLACK);              // Fundo preto
   tft.pushImage(0, 0, 240, 240, katchau); // Mostra a imagem KATCHAU (se presente em img.h)
 }
+
 void limparTela()
 {
   tft.fillScreen(TFT_BLACK);
 }
-
 void pararCarrinho()
 {
   emCorrida = false;
@@ -935,29 +813,51 @@ void pararCarrinho()
   carrinho.controlarRodas(0.0f, 0.0f, 0.0f);
   Serial.println(">> PAROU (função)");
 }
-
 void enviarJSONMotores(int dir[4], int vel)
 {
-  StaticJsonDocument<256> doc;
-  doc["tipo"] = "motores";
+  if (!client.connected())
+    reconnectMQTT();
+
+  StaticJsonDocument<512> doc;
+
+  doc["tipo"] = "status_completo";
+
+  // ---------- MOTORES ----------
+  JsonObject motores = doc.createNestedObject("motores");
 
   for (int i = 0; i < 4; i++)
   {
     String key = String("M") + String(i);
-    JsonObject motor = doc.createNestedObject(key.c_str());
+    JsonObject motor = motores.createNestedObject(key.c_str());
     motor["direcao"] = dir[i];
     motor["velocidade"] = vel;
   }
 
-  // 🟢 Timestamp correto via NTP
+  // ---------- TEMPERATURAS ----------
+  JsonObject temp = doc.createNestedObject("temperaturas");
+
+  for (int i = 0; i < 4; i++)
+  {
+    int16_t leitura = ads.readADC_SingleEnded(i);
+    float mV = leitura * 0.1875; // ADS1115 → mV
+    float tempC = mV / 10.0;     // LM35 → °C
+
+    String key = String("M") + String(i);
+    temp[key] = tempC;
+  }
+
+  // ---------- TIMESTAMP ----------
   time_t now = time(nullptr);
-  doc["timestamp"] = now; // envia UNIX timestamp real
+  doc["timestamp"] = now;
+
   doc["source"] = "carrinho";
 
-  char buffer[256];
-  size_t n = serializeJson(doc, buffer);
+  // ---------- ENVIO ----------
+  char buffer[512];
+  size_t n = serializeJsonPretty(doc, buffer);
   client.publish(mqtt_topic_pub, buffer, n);
-  Serial.print("📡 JSON Motores publicado: ");
+
+  Serial.print("📡 JSON Status Completo publicado: ");
   Serial.println(buffer);
 }
 
@@ -965,7 +865,6 @@ void enviarPacoteCompleto()
 {
   StaticJsonDocument<256> doc;
   doc["tipo"] = "status";
-  doc["uptime_ms"] = millis();
   doc["contA"] = contA;
   doc["contB"] = contB;
   doc["contC"] = contC;
@@ -982,91 +881,385 @@ void enviarPacoteCompleto()
   client.publish(mqtt_topic_pub, buffer, n);
 }
 
-void temperaturaMotores()
+// void temperaturaMotores()
+// {
+//   if (!client.connected())
+//     reconnectMQTT();
+
+//   StaticJsonDocument<256> doc;
+//   doc["tipo"] = "temperatura_motores";
+
+//   // ADS1115: cada LSB ≈ 0.1875 mV
+//   // LM35: 10 mV = 1°C
+
+//   for (int i = 0; i < 4; i++)
+//   {
+//     int16_t leitura = ads.readADC_SingleEnded(i);
+//     float mV = leitura * 0.1875; // converte para mV
+//     float tempC = mV / 10.0;     // LM35 -> graus Celsius
+
+//     char key[8];
+//     sprintf(key, "M%d", i);
+//     doc[key] = tempC;
+//   }
+
+//   // Timestamp real
+//   // time_t now = time(nullptr);
+//   // doc["timestamp"] = now;
+//   doc["source"] = "carrinho";
+
+//   char buffer[256];
+//   size_t n = serializeJson(doc, buffer);
+//   client.publish(mqtt_topic_pub, buffer, n);
+
+//   Serial.print("🌡 JSON Temperaturas publicado: ");
+//   Serial.println(buffer);
+// }
+
+// void Leituraproximidade()
+// {
+//   if (!client.connected())
+//     reconnectMQTT();
+
+//   const int DISTANCIA_MINIMA_MM = 150; // limite de segurança (15 cm)
+
+//   VL53L0X_RangingMeasurementData_t medida;
+//   lox.rangingTest(&medida, false);
+
+//   int distancia = -1;
+
+//   if (medida.RangeStatus == 0) // leitura válida
+//   {
+//     distancia = medida.RangeMilliMeter;
+//   }
+
+//   // =============================
+//   //      LÓGICA DE SEGURANÇA
+//   // =============================
+//   bool perigo = false;
+
+//   if (distancia > 0 && distancia < DISTANCIA_MINIMA_MM)
+//   {
+//     perigo = true;
+
+//     // PARA O CARRINHO IMEDIATAMENTE
+//     int dir[4] = {0, 0, 0, 0};
+//     aplicarDirecao(dir);
+//     enviarJSONMotores(dir, 0);
+
+//     Serial.println("🚨 Obstáculo detectado! Carrinho parado automaticamente.");
+//   }
+
+//   // =============================
+//   //  ENVIO MQTT - PADRÃO DO CÓDIGO
+//   // =============================
+//   StaticJsonDocument<256> doc;
+//   doc["tipo"] = "proximidade";
+//   doc["distancia_mm"] = distancia;
+//   doc["perigo"] = perigo; // true se houve parada automática
+
+//   // time_t now = time(nullptr);
+//   // doc["timestamp"] = now;
+//   doc["source"] = "carrinho";
+
+//   char buffer[256];
+//   size_t n = serializeJson(doc, buffer);
+//   client.publish(mqtt_topic_pub, buffer, n);
+
+//   Serial.print("📏 JSON Proximidade publicado: ");
+//   Serial.println(buffer);
+// }
+
+// ----------------------- Led RBG ------------------------
+void acenderRGBvermelho()
 {
-  if (!client.connected())
-    reconnectMQTT();
-
-  StaticJsonDocument<256> doc;
-  doc["tipo"] = "temperatura_motores";
-
-  // ADS1115: cada LSB ≈ 0.1875 mV
-  // LM35: 10 mV = 1°C
-
-  for (int i = 0; i < 4; i++)
+  for (int i = 0; i < QTD_LEDS; i++)
   {
-    int16_t leitura = ads.readADC_SingleEnded(i);
-    float mV = leitura * 0.1875; // converte para mV
-    float tempC = mV / 10.0;     // LM35 -> graus Celsius
-
-    char key[8];
-    sprintf(key, "M%d", i);
-    doc[key] = tempC;
+    fitaRGB.setPixelColor(i, fitaRGB.Color(255, 0, 0));
   }
-
-  // Timestamp real
-  // time_t now = time(nullptr);
-  // doc["timestamp"] = now;
-  doc["source"] = "carrinho";
-
-  char buffer[256];
-  size_t n = serializeJson(doc, buffer);
-  client.publish(mqtt_topic_pub, buffer, n);
-
-  Serial.print("🌡 JSON Temperaturas publicado: ");
-  Serial.println(buffer);
+  fitaRGB.show();
 }
 
-void Leituraproximidade()
+void acenderRGBbranco()
 {
-  if (!client.connected())
-    reconnectMQTT();
-
-  const int DISTANCIA_MINIMA_MM = 150; // limite de segurança (15 cm)
-
-  VL53L0X_RangingMeasurementData_t medida;
-  lox.rangingTest(&medida, false);
-
-  int distancia = -1;
-
-  if (medida.RangeStatus == 0) // leitura válida
+  for (int i = 0; i < QTD_LEDS; i++)
   {
-    distancia = medida.RangeMilliMeter;
+    fitaRGB.setPixelColor(i, fitaRGB.Color(255, 255, 255));
+  }
+  fitaRGB.show();
+}
+
+void acenderRGBamarelo()
+{
+  for (int i = 0; i < QTD_LEDS; i++)
+  {
+    fitaRGB.setPixelColor(i, fitaRGB.Color(255, 255, 0));
+  }
+  fitaRGB.show();
+}
+
+void apagarRGB()
+{
+  for (int i = 0; i < QTD_LEDS; i++)
+  {
+    fitaRGB.setPixelColor(i, fitaRGB.Color(0, 0, 0)); // desligar
+  }
+  fitaRGB.show();
+}
+
+
+
+bool lerCaixas()
+{
+  Serial.println("Lendo o RFID");
+  bool newCard = nfc.inListPassiveTarget(); // verifica se ha um novo cartao a ser lido
+  Serial.println(newCard);
+  for (int i = 0; i < 8; i++)
+    uid[i] = 0;
+
+  if (newCard)
+  {
+    Serial.println("Cartao detectado!");
+
+    // leitura do cartao
+    u_int8_t uidLength; // tamanho do ID lido
+
+    sucess = nfc.readPassiveTargetID(PN532_MIFARE_ISO14443A, uid, &uidLength);
+
+    if (sucess)
+    {
+      Serial.print("UID do cartao: ");
+
+      for (uint8_t i = 0; i < uidLength; i++)
+      {
+        Serial.print(uid[i], HEX);
+        Serial.print(" ");
+      }
+
+      Serial.println();
+    }
+    else
+    {
+      Serial.println("Falha ao ler do cartao");
+    }
+  }
+  return sucess;
+}
+
+bool compararCartao(const uint8_t (&a)[8], const uint8_t (&b)[8])
+{
+  for (int i = 0; i < 8; i++)
+  {
+    Serial.print(a[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+
+  for (int i = 0; i < 8; i++)
+  {
+    Serial.print(b[i], HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+
+  for (int i = 0; i < 8; i++)
+  {
+    if (a[i] != b[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+void atualizabotoes()
+{
+  if (contA != ultimoExecA)
+  {
+    if (contA)
+      botaoAPressionado = 1;
+    else
+      botaoASolto = 1;
   }
 
-  // =============================
-  //      LÓGICA DE SEGURANÇA
-  // =============================
-  bool perigo = false;
-
-  if (distancia > 0 && distancia < DISTANCIA_MINIMA_MM)
+  else
   {
-    perigo = true;
-
-    // PARA O CARRINHO IMEDIATAMENTE
-    int dir[4] = {0, 0, 0, 0};
-    aplicarDirecao(dir);
-    enviarJSONMotores(dir, 0);
-
-    Serial.println("🚨 Obstáculo detectado! Carrinho parado automaticamente.");
+    botaoAPressionado = 0;
+    botaoASolto = 0;
   }
 
-  // =============================
-  //  ENVIO MQTT - PADRÃO DO CÓDIGO
-  // =============================
-  StaticJsonDocument<256> doc;
-  doc["tipo"] = "proximidade";
-  doc["distancia_mm"] = distancia;
-  doc["perigo"] = perigo; // true se houve parada automática
+  if (contB != ultimoExecB)
+  {
+    if (contB)
+      botaoBPressionado = 1;
+    else
+      botaoBSolto = 1;
+  }
 
-  // time_t now = time(nullptr);
-  // doc["timestamp"] = now;
-  doc["source"] = "carrinho";
+  else
+  {
+    botaoBPressionado = 0;
+    botaoBSolto = 0;
+  }
 
-  char buffer[256];
-  size_t n = serializeJson(doc, buffer);
-  client.publish(mqtt_topic_pub, buffer, n);
+  if (contC != ultimoExecC)
+  {
+    if (contC)
+      botaoCPressionado = 1;
+    else
+      botaoCSolto = 1;
+  }
 
-  Serial.print("📏 JSON Proximidade publicado: ");
-  Serial.println(buffer);
+  else
+  {
+    botaoCPressionado = 0;
+    botaoCSolto = 0;
+  }
+
+  if (contD != ultimoExecD)
+  {
+    if (contD)
+      botaoDPressionado = 1;
+    else
+      botaoDSolto = 1;
+  }
+
+  else
+  {
+    botaoDPressionado = 0;
+    botaoDSolto = 0;
+  }
+
+  if (contE != ultimoExecE)
+  {
+    if (contE)
+      botaoEPressionado = 1;
+    else
+      botaoESolto = 1;
+  }
+
+  else
+  {
+    botaoEPressionado = 0;
+    botaoESolto = 0;
+  }
+
+  if (contF != ultimoExecF)
+  {
+    if (contF)
+      botaoFPressionado = 1;
+    else
+      botaoFSolto = 1;
+  }
+
+  else
+  {
+    botaoFPressionado = 0;
+    botaoFSolto = 0;
+  }
+
+  if (contK != ultimoExecK)
+  {
+    if (contK)
+      botaoKPressionado = 1;
+    else
+      botaoKSolto = 1;
+  }
+
+  else
+  {
+    botaoKPressionado = 0;
+    botaoKSolto = 0;
+  }
+
+  ultimoExecA = contA;
+  ultimoExecB = contB;
+  ultimoExecC = contC;
+  ultimoExecD = contD;
+  ultimoExecE = contE;
+  ultimoExecF = contF;
+  ultimoExecK = contK;
+}
+
+void atualizaRGB()
+{
+
+  if (modoChase)
+  {
+    unsigned long agora = millis();
+    if (agora - ultimoMovimento >= (unsigned long)intervaloChase)
+    {
+      ultimoMovimento = agora;
+
+      posicaoChase++;
+      if (posicaoChase >= QTD_LEDS)
+        posicaoChase = 0;
+
+      int contadorAux = 0;
+      if(posicaoChase < 8) contadorAux = QTD_LEDS;
+
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 9), 0, 0, 0); //apaga o ultimo da sequencia
+
+      // Acende o LED atual (vermelho)
+      
+
+      fitaRGB.setPixelColor(posicaoChase, 255, 0, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 1), 255, 0, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 2), 255, 0, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 3), 255, 165, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 4), 255, 165, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 5), 255, 255, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 6), 255, 255, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 7), 255, 255, 0);
+      fitaRGB.setPixelColor(posicaoChase + (contadorAux - 8), 255, 255, 0);
+
+      fitaRGB.show();
+    }
+  }
+
+  else{
+    apagarRGB();
+  }
+}
+
+
+void atualizaLeituraCaixas()
+{
+   if (modoLeituraRFID == 1)
+    {
+      Serial.printf("selecionarCaixa = %d\t", selecionarCaixa);
+      Serial.printf("leituraCaixa : %d\n", lerCaixas());
+
+      if (selecionarCaixa == 1)
+      {
+        u_int8_t caixaA[8] = {0xC3, 0x8A, 0x14, 0x0C, 0X00, 0X00, 0x00, 0x00};
+        u_int8_t caixaB[8] = {0x23, 0x80, 0xD9, 0x12, 0X00, 0X00, 0x00, 0x00};
+        u_int8_t caixaC[8] = {0xC3, 0xED, 0xA5, 0xEE, 0X00, 0X00, 0x00, 0x00};
+        if (lerCaixas())
+        {
+
+          if (compararCartao(uid, caixaA))
+          {
+            Serial.println("CAIXA A");
+            acenderRGBamarelo();
+          }
+
+          else if (compararCartao(uid, caixaB))
+          {
+            Serial.println("CAIXA B");
+            acenderRGBbranco();
+          }
+          else if (compararCartao(uid, caixaC))
+          {
+            Serial.println("CAIXA C");
+            acenderRGBvermelho();
+            Serial.println("LEU");
+          }
+        }
+      }
+    }
+    else
+    {
+      apagarRGB();
+    }
 }
